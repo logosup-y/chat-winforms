@@ -4,12 +4,12 @@ using System.Windows.Forms;
 
 namespace ServerPartWinForm
 {
-    public partial class Form1 : Form
+    public partial class ServerForm : Form
     {
         private ChatServer _server;
         private Task _serverTask;
 
-        public Form1()
+        public ServerForm()
         {
             InitializeComponent();
             DisconnectButton.Enabled = false;

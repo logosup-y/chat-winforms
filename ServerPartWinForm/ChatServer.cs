@@ -10,7 +10,7 @@ namespace ServerPartWinForm
 {
     public class ChatServer
     {
-        public Form1 MainForm { get; private set; }
+        public ServerForm MainForm { get; private set; }
         public IPAddress ServerIpAddress { get; private set; }
         public int Port { get; private set; }
         public List<ClientInfo> ConnectedClients { get; private set; }
@@ -18,7 +18,7 @@ namespace ServerPartWinForm
         private TcpListener _listener;
         private bool _isRunning;
 
-        public ChatServer(Form1 mainForm, IPAddress ipAddress, int port)
+        public ChatServer(ServerForm mainForm, IPAddress ipAddress, int port)
         {
             MainForm = mainForm;
             ServerIpAddress = ipAddress;
