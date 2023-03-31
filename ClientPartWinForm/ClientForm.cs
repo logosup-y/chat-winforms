@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace ClientPartWinForm
@@ -52,18 +53,26 @@ namespace ClientPartWinForm
 
         private async void sendButton_Click(object sender, EventArgs e)
         {
+            char[] splitCharValues = {'\n', '\r'};
 
-            string message = messageTextBox.Text.Trim();
+            var message = messageTextBox.Text.Split(splitCharValues, StringSplitOptions.RemoveEmptyEntries);
 
-            // Check if the message is empty or contains only whitespace characters
-            if (string.IsNullOrEmpty(message))
+            StringBuilder splitMessage = new StringBuilder();
+
+            foreach (var line in message)
+            {
+                splitMessage.Append($"{line} ");
+            }            
+
+            /*// Check if the message is empty or contains only whitespace characters
+            if (string.IsNullOrEmpty(splitMessage.ToString()))
             {
                 return;
-            }
+            }*/
 
             try
             {
-                await _client.SendMessageAsync(message);
+                await _client.SendMessageAsync(splitMessage.ToString());
                 messageTextBox.Clear();
             }
             catch (Exception ex)
