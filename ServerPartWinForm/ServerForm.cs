@@ -37,21 +37,18 @@ namespace ServerPartWinForm
             _serverTask = null;
 
             labelStatus.Text = "Server is stopped.";
-            richTextBoxLog.AppendText("Server stopped.\n");
+            richTextBoxLog.AppendText($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Server stopped.\n");
         }
 
         public void LogMessage(string message)
         {
-            var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-            string logMessage = $"[{timestamp}] {message}";
-
             if (richTextBoxLog.InvokeRequired)
             {
                 richTextBoxLog.Invoke(new Action<string>(LogMessage), message);
             }
             else
             {
-                richTextBoxLog.AppendText($"{logMessage}\n");
+                richTextBoxLog.AppendText($"{$"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] {message}"}\n");
             }            
         }
     }

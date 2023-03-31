@@ -84,8 +84,8 @@ namespace ServerPartWinForm
                 // Read the client's username
                 clientInfo.Username = await reader.ReadLineAsync();
 
-                MainForm.LogMessage($"Client {clientInfo.Username} connected.");
-                BroadcastMessage($"Server: {clientInfo.Username} has joined the chat.");
+                MainForm.LogMessage($"Client \"{clientInfo.Username}\" connected.");
+                BroadcastMessage($"Server: Client \"{clientInfo.Username}\" has joined the chat.");
 
                 while (clientInfo.TcpClient.Connected)
                 {
@@ -119,15 +119,11 @@ namespace ServerPartWinForm
         {
             Console.WriteLine(message);
 
-            var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-
-            string timestampMessage = $"[{timestamp}] {message}";
-
             foreach (var clientInfo in ConnectedClients)
             {
                 NetworkStream stream = clientInfo.TcpClient.GetStream();
                 StreamWriter writer = new StreamWriter(stream, new UTF8Encoding(false)) { AutoFlush = true };
-                writer.WriteLine(timestampMessage);
+                writer.WriteLine($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] {message}");
             }
         }
     }
