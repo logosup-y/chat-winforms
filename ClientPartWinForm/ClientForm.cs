@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace ClientPartWinForm
@@ -15,8 +16,14 @@ namespace ClientPartWinForm
 
         private async void connectButton_Click(object sender, EventArgs e)
         {
+            if (string.IsNullOrWhiteSpace(userNameTextBox.Text))
+            {
+                MessageBox.Show("Please enter a username before connecting.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
             connectButton.Enabled = false;
-            userNameTextBox.Enabled = false;
+            userNameTextBox.Enabled = false;                       
 
             string username = userNameTextBox.Text;
             _client = new ChatClient(username);
@@ -26,7 +33,8 @@ namespace ClientPartWinForm
                 await _client.ConnectAsync(IPAddress.Loopback, 5000);
                 disconnectButton.Enabled = true;
                 connectionStatus.Text = $"Connected as {username}";
-                _client.MessageReceived += OnMessageReceived;               
+                _client.MessageReceived += OnMessageReceived;
+                _client.ServerDisconnected += OnServerDisconnected;
             }
             catch (Exception ex)
             {
@@ -53,22 +61,20 @@ namespace ClientPartWinForm
 
         private async void sendButton_Click(object sender, EventArgs e)
         {
-            char[] splitCharValues = {'\n', '\r'};
-
-            var message = messageTextBox.Text.Split(splitCharValues, StringSplitOptions.RemoveEmptyEntries);
+            var message = messageTextBox.Text.Split("\n\r".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 
             StringBuilder splitMessage = new StringBuilder();
 
             foreach (var line in message)
             {
                 splitMessage.Append($"{line} ");
-            }            
+            }
 
-            /*// Check if the message is empty or contains only whitespace characters
+            // Check if the message is empty or contains only whitespace characters
             if (string.IsNullOrEmpty(splitMessage.ToString()))
             {
                 return;
-            }*/
+            }
 
             try
             {
@@ -78,7 +84,22 @@ namespace ClientPartWinForm
             catch (Exception ex)
             {
                 MessageBox.Show($"Error sending message: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }                    
+            }
+
+
+        }
+
+        private void OnServerDisconnected(object sender, EventArgs e)
+        {
+            disconnectButton.Invoke(new Action(() =>
+            {
+                disconnectButton.Enabled = false;
+                connectButton.Enabled = true;
+                userNameTextBox.Enabled = true;
+                connectionStatus.Text = "Disconnected";
+            }));
+
+            messagesRichTextBox.Invoke(new Action(() => messagesRichTextBox.AppendText("Connection with server lost\n")));
         }
     }
 }

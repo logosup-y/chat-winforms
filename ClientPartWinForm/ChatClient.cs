@@ -15,6 +15,8 @@ namespace ClientPartWinForm
 
         public event EventHandler<string> MessageReceived;
 
+        public event EventHandler ServerDisconnected;
+
         public ChatClient(string username)
         {
             Username = username;
@@ -32,6 +34,7 @@ namespace ClientPartWinForm
             await writer.WriteLineAsync(Username);
 
             // Start listening for incoming messages
+            Task.Run(() => MonitorConnectionAsync());
             Task.Run(() => ReceiveMessagesAsync());
         }
 
@@ -53,21 +56,41 @@ namespace ClientPartWinForm
                     StreamReader reader = new StreamReader(stream, new UTF8Encoding(false));
 
                     string message = await reader.ReadLineAsync();
+
                     if (!string.IsNullOrEmpty(message))
                     {
                         MessageReceived?.Invoke(this, message);
                     }
                 }
+
                 catch (IOException)
                 {
-                    // Server has disconnected
                     break;
                 }
-            }       
+            }
 
             // Clean up after disconnection
             TcpClient.Close();
             Console.WriteLine("Disconnected from server.");
+        }
+
+        private async Task MonitorConnectionAsync()
+        {
+            while (TcpClient.Connected)
+            {
+                await Task.Delay(1000);
+
+                if (TcpClient.Client == null)
+                {
+                    break;
+                }
+
+                if (TcpClient.Client.Poll(0, SelectMode.SelectRead) && TcpClient.Client.Available == 0)
+                {
+                    ServerDisconnected?.Invoke(this, EventArgs.Empty);                    
+                    break;
+                }
+            }
         }
     }
 }
