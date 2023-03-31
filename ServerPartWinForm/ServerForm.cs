@@ -23,7 +23,7 @@ namespace ServerPartWinForm
             _server = new ChatServer(this, IPAddress.Any, 5000);
             _serverTask = _server.StartAsync();
 
-            labelStatus.Text = "Server is running...";            
+            labelStatus.Text = "Server is running...";
 
             await _serverTask;
         }
@@ -32,7 +32,7 @@ namespace ServerPartWinForm
         {
             ConnectButton.Enabled = true;
             DisconnectButton.Enabled = false;
-                        
+
             _server.Stop();
             _serverTask = null;
 
@@ -42,14 +42,17 @@ namespace ServerPartWinForm
 
         public void LogMessage(string message)
         {
+            var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            string logMessage = $"[{timestamp}] {message}";
+
             if (richTextBoxLog.InvokeRequired)
             {
                 richTextBoxLog.Invoke(new Action<string>(LogMessage), message);
             }
             else
             {
-                richTextBoxLog.AppendText($"{message}\n");
-            }
+                richTextBoxLog.AppendText($"{logMessage}\n");
+            }            
         }
     }
 }

@@ -39,9 +39,10 @@ namespace ServerPartWinForm
                 try
                 {
                     TcpClient client = await _listener.AcceptTcpClientAsync();
-                    MainForm.LogMessage("Client connected.");
-
+                    
                     ClientInfo clientInfo = new ClientInfo { TcpClient = client };
+
+                    /*MainForm.LogMessage($"{clientInfo.Username} connected.");*/
 
                     ConnectedClients.Add(clientInfo);
 
@@ -74,49 +75,59 @@ namespace ServerPartWinForm
 
         private async Task HandleClientAsync(ClientInfo clientInfo)
         {
-            NetworkStream stream = clientInfo.TcpClient.GetStream();
-            StreamReader reader = new StreamReader(stream, Encoding.UTF8);
-            StreamWriter writer = new StreamWriter(stream, new UTF8Encoding(false)) { AutoFlush = true };
-
-            // Get the username and store it in the ClientInfo object
-            clientInfo.Username = await reader.ReadLineAsync();
-
-            // Broadcast a welcome message to all clients
-            BroadcastMessage($"Server: {clientInfo.Username} has joined the chat.");
-
-            // Read incoming messages from the client and broadcast them to all connected clients
-            while (_isRunning && clientInfo.TcpClient.Connected)
+            try
             {
-                try
+                NetworkStream stream = clientInfo.TcpClient.GetStream();
+                StreamReader reader = new StreamReader(stream, Encoding.UTF8);
+                StreamWriter writer = new StreamWriter(stream, Encoding.UTF8) { AutoFlush = true };
+
+                // Read the client's username
+                clientInfo.Username = await reader.ReadLineAsync();
+
+                MainForm.LogMessage($"Client {clientInfo.Username} connected.");
+                BroadcastMessage($"Server: {clientInfo.Username} has joined the chat.");
+
+                while (clientInfo.TcpClient.Connected)
                 {
                     string message = await reader.ReadLineAsync();
-                    if (!string.IsNullOrWhiteSpace(message))
+
+                    if (clientInfo.TcpClient.Connected && !string.IsNullOrEmpty(message))
                     {
+                        MainForm.LogMessage($"{clientInfo.Username}: {message}");
                         BroadcastMessage($"{clientInfo.Username}: {message}");
                     }
-                }
-                catch (IOException)
-                {
-                    // Client has disconnected
-                    break;
+                    else
+                    {
+                        break;
+                    }
                 }
             }
-
-            // Clean up after client disconnects
-            ConnectedClients.Remove(clientInfo);
-            clientInfo.TcpClient.Close();
-            MainForm.LogMessage($"{clientInfo.Username} has left the chat.");
-            BroadcastMessage($"Server: {clientInfo.Username} has left the chat.");
+            catch (IOException)
+            {
+                // Handle disconnection
+            }
+            finally
+            {
+                MainForm.LogMessage($"Client {clientInfo.Username} disconnected.");
+                BroadcastMessage($"Server: {clientInfo.Username} has left the chat.");
+                ConnectedClients.RemoveAll(c => c.Username == clientInfo.Username);
+                clientInfo.TcpClient.Close();
+            }
         }
 
         private void BroadcastMessage(string message)
         {
             Console.WriteLine(message);
+
+            var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+            string timestampMessage = $"[{timestamp}] {message}";
+
             foreach (var clientInfo in ConnectedClients)
             {
                 NetworkStream stream = clientInfo.TcpClient.GetStream();
                 StreamWriter writer = new StreamWriter(stream, new UTF8Encoding(false)) { AutoFlush = true };
-                writer.WriteLine(message);
+                writer.WriteLine(timestampMessage);
             }
         }
     }

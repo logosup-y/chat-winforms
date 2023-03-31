@@ -52,9 +52,24 @@ namespace ClientPartWinForm
 
         private async void sendButton_Click(object sender, EventArgs e)
         {
-            string message = messageTextBox.Text;
-            await _client.SendMessageAsync(message);
-            messageTextBox.Clear();
+
+            string message = messageTextBox.Text.Trim();
+
+            // Check if the message is empty or contains only whitespace characters
+            if (string.IsNullOrEmpty(message))
+            {
+                return;
+            }
+
+            try
+            {
+                await _client.SendMessageAsync(message);
+                messageTextBox.Clear();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error sending message: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }                    
         }
     }
 }

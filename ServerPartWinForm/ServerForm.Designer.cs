@@ -66,11 +66,12 @@
             // 
             richTextBoxLog.Location = new Point(12, 40);
             richTextBoxLog.Name = "richTextBoxLog";
+            richTextBoxLog.ReadOnly = true;
             richTextBoxLog.Size = new Size(763, 398);
             richTextBoxLog.TabIndex = 3;
             richTextBoxLog.Text = "";
             // 
-            // Form1
+            // ServerForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -79,7 +80,7 @@
             Controls.Add(DisconnectButton);
             Controls.Add(ConnectButton);
             Controls.Add(labelStatus);
-            Name = "Form1";
+            Name = "ServerForm";
             Text = "Form1";
             ResumeLayout(false);
         }

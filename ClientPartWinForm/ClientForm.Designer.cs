@@ -77,6 +77,7 @@
             // 
             messagesRichTextBox.Location = new Point(12, 43);
             messagesRichTextBox.Name = "messagesRichTextBox";
+            messagesRichTextBox.ReadOnly = true;
             messagesRichTextBox.Size = new Size(827, 258);
             messagesRichTextBox.TabIndex = 4;
             messagesRichTextBox.Text = "";
