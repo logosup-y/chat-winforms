@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             connectionStatus = new Label();
-            userNameTextBox = new TextBox();
+            usernameTextBox = new TextBox();
             connectButton = new Button();
             disconnectButton = new Button();
             messagesRichTextBox = new RichTextBox();
@@ -46,12 +46,14 @@
             connectionStatus.TabIndex = 0;
             connectionStatus.Text = "Connection status";
             // 
-            // userNameTextBox
+            // usernameTextBox
             // 
-            userNameTextBox.Location = new Point(266, 6);
-            userNameTextBox.Name = "userNameTextBox";
-            userNameTextBox.Size = new Size(284, 27);
-            userNameTextBox.TabIndex = 1;
+            usernameTextBox.Location = new Point(274, 5);
+            usernameTextBox.Name = "usernameTextBox";
+            usernameTextBox.Size = new Size(284, 27);
+            usernameTextBox.TabIndex = 1;
+            usernameTextBox.Enter += usernameTextBox_Enter;
+            usernameTextBox.Leave += usernameTextBox_Leave;
             // 
             // connectButton
             // 
@@ -110,10 +112,10 @@
             Controls.Add(messagesRichTextBox);
             Controls.Add(disconnectButton);
             Controls.Add(connectButton);
-            Controls.Add(userNameTextBox);
+            Controls.Add(usernameTextBox);
             Controls.Add(connectionStatus);
             Name = "ClientForm";
-            Text = "Form1";
+            Text = "Client";
             ResumeLayout(false);
             PerformLayout();
         }
@@ -121,7 +123,7 @@
         #endregion
 
         private Label connectionStatus;
-        private TextBox userNameTextBox;
+        private TextBox usernameTextBox;
         private Button connectButton;
         private Button disconnectButton;
         private RichTextBox messagesRichTextBox;

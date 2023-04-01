@@ -76,20 +76,40 @@ namespace ClientPartWinForm
 
         private async Task MonitorConnectionAsync()
         {
-            while (TcpClient.Connected)
+            while (IsClientConnected(TcpClient))
             {
-                await Task.Delay(1000);
+                await Task.Delay(500);
 
-                if (TcpClient.Client == null)
+                continue;
+            }
+
+            ServerDisconnected?.Invoke(this, EventArgs.Empty);
+        }
+
+        public bool IsClientConnected(TcpClient tcpClient)
+        {
+            if (tcpClient == null || !tcpClient.Connected)
+            {
+                return false;
+            }
+
+            try
+            {
+                if (tcpClient.Client.Poll(0, SelectMode.SelectRead))
                 {
-                    break;
+                    byte[] buffer = new byte[1];
+                    if (tcpClient.Client.Receive(buffer, SocketFlags.Peek) == 0)
+                    {
+                        // Socket has been closed
+                        return false;
+                    }
                 }
 
-                if (TcpClient.Client.Poll(0, SelectMode.SelectRead) && TcpClient.Client.Available == 0)
-                {
-                    ServerDisconnected?.Invoke(this, EventArgs.Empty);                    
-                    break;
-                }
+                return true;
+            }
+            catch (SocketException)
+            {
+                return false;
             }
         }
     }

@@ -49,7 +49,7 @@ namespace ServerPartWinForm
             else
             {
                 richTextBoxLog.AppendText($"{$"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] {message}"}\n");
-            }            
+            }
         }
     }
 }

@@ -11,36 +11,41 @@ namespace ClientPartWinForm
         public ClientForm()
         {
             InitializeComponent();
+            sendButton.Enabled = false;
             disconnectButton.Enabled = false;
+            usernameTextBox.Text = "Input your username";
+            usernameTextBox.ForeColor = Color.Gray;
         }
 
         private async void connectButton_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(userNameTextBox.Text))
+            if (string.IsNullOrWhiteSpace(usernameTextBox.Text) || usernameTextBox.Text == "Input your username")
             {
                 MessageBox.Show("Please enter a username before connecting.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
             connectButton.Enabled = false;
-            userNameTextBox.Enabled = false;                       
+            usernameTextBox.Enabled = false;
 
-            string username = userNameTextBox.Text;
+            string username = usernameTextBox.Text;
             _client = new ChatClient(username);
 
             try
             {
                 await _client.ConnectAsync(IPAddress.Loopback, 5000);
                 disconnectButton.Enabled = true;
-                connectionStatus.Text = $"Connected as {username}";
+                connectionStatus.Text = $"Connected as \"{username}\"";
+                sendButton.Enabled = true;
+                messagesRichTextBox.Invoke(new Action(() => messagesRichTextBox.AppendText($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] You are connected\n")));
                 _client.MessageReceived += OnMessageReceived;
                 _client.ServerDisconnected += OnServerDisconnected;
             }
-            catch (Exception ex)
+            catch
             {
-                MessageBox.Show($"Error connecting to server: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error connecting to server", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 connectButton.Enabled = true;
-                userNameTextBox.Enabled = true;
+                usernameTextBox.Enabled = true;
             }
         }
 
@@ -53,7 +58,8 @@ namespace ClientPartWinForm
         {
             disconnectButton.Enabled = false;
             connectButton.Enabled = true;
-            userNameTextBox.Enabled = true;
+            sendButton.Enabled = false;
+            usernameTextBox.Enabled = true;
 
             _client.TcpClient.Close();
             connectionStatus.Text = "Disconnected";
@@ -81,9 +87,9 @@ namespace ClientPartWinForm
                 await _client.SendMessageAsync(splitMessage.ToString());
                 messageTextBox.Clear();
             }
-            catch (Exception ex)
+            catch
             {
-                MessageBox.Show($"Error sending message: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error sending message: Your are not connected", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
 
@@ -95,11 +101,39 @@ namespace ClientPartWinForm
             {
                 disconnectButton.Enabled = false;
                 connectButton.Enabled = true;
-                userNameTextBox.Enabled = true;
+                sendButton.Enabled = false;
+                usernameTextBox.Enabled = true;
                 connectionStatus.Text = "Disconnected";
             }));
 
-            messagesRichTextBox.Invoke(new Action(() => messagesRichTextBox.AppendText("Connection with server lost\n")));
+            messagesRichTextBox.Invoke(new Action(() => messagesRichTextBox.AppendText($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Connection with server lost\n")));
+        }
+
+        private void usernameTextBox_Click(object sender, EventArgs e)
+        {
+            if (usernameTextBox.Text == "Input your username")
+            {
+                usernameTextBox.Text = "";
+                usernameTextBox.ForeColor = Color.Black;
+            }
+        }
+
+        private void usernameTextBox_Leave(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(usernameTextBox.Text))
+            {
+                usernameTextBox.Text = "Input your username";
+                usernameTextBox.ForeColor = Color.Gray;
+            }
+        }
+
+        private void usernameTextBox_Enter(object sender, EventArgs e)
+        {
+            if (usernameTextBox.Text == "Input your username")
+            {
+                usernameTextBox.Text = "";
+                usernameTextBox.ForeColor = Color.Black;
+            }
         }
     }
 }

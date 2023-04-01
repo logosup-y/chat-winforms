@@ -81,7 +81,7 @@
             Controls.Add(ConnectButton);
             Controls.Add(labelStatus);
             Name = "ServerForm";
-            Text = "Form1";
+            Text = "Server";
             ResumeLayout(false);
         }
 
