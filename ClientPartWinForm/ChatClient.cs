@@ -29,9 +29,20 @@ namespace ClientPartWinForm
 
             NetworkStream stream = TcpClient.GetStream();
             StreamWriter writer = new StreamWriter(stream, Encoding.UTF8) { AutoFlush = true };
+            StreamReader reader = new StreamReader(stream, Encoding.UTF8);
 
             // Send the username to the server
             await writer.WriteLineAsync(Username);
+
+            string serverResponse = await reader.ReadLineAsync();
+
+            if (serverResponse.StartsWith("Server: Username is already taken"))
+            {
+                // Close the connection and raise the ServerDisconnected event
+                TcpClient.Close();
+                ServerDisconnected?.Invoke(this, EventArgs.Empty);
+                return;
+            }
 
             // Start listening for incoming messages
             Task.Run(() => MonitorConnectionAsync());
@@ -59,7 +70,7 @@ namespace ClientPartWinForm
 
                     if (!string.IsNullOrEmpty(message))
                     {
-                        MessageReceived?.Invoke(this, message);
+                        MessageReceived?.Invoke(this, message);                        
                     }
                 }
 

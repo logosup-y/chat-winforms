@@ -82,7 +82,26 @@ namespace ServerPartWinForm
                 StreamWriter writer = new StreamWriter(stream, Encoding.UTF8) { AutoFlush = true };
 
                 // Read the client's username
-                clientInfo.Username = await reader.ReadLineAsync();
+                string Username = await reader.ReadLineAsync();
+
+                if (ConnectedClients.Count <= 1)
+                {
+                    clientInfo.Username = Username;
+                }                                                          
+                else if (ConnectedClients.Take(ConnectedClients.Count - 1).Any(c => c.Username.Equals(Username, StringComparison.OrdinalIgnoreCase))) 
+                {
+                    // Notify the client that the username is not unique and close the connection
+                    clientInfo.Username = Username + ConnectedClients.Count.ToString();
+                    await writer.WriteLineAsync("Server: Username is already taken. Please choose another one.");
+                    clientInfo.TcpClient.Close();
+                    ConnectedClients.RemoveAll(c => c.Username == clientInfo.Username);
+                }
+                else
+                {
+                    clientInfo.Username = Username;
+                }
+
+                
 
                 MainForm.LogMessage($"Client \"{clientInfo.Username}\" connected.");
                 BroadcastMessage($"Server: Client \"{clientInfo.Username}\" has joined the chat.");
