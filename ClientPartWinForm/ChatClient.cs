@@ -17,12 +17,14 @@ namespace ClientPartWinForm
 
         public event EventHandler ServerDisconnected;
 
+        public event EventHandler UsernameAlreadyTaken;
+
         public ChatClient(string username)
         {
             Username = username;
         }
 
-        public async Task ConnectAsync(IPAddress serverIpAddress, int port)
+        public async Task<bool> ConnectAsync(IPAddress serverIpAddress, int port)
         {
             TcpClient = new TcpClient();
             await TcpClient.ConnectAsync(serverIpAddress, port);
@@ -34,20 +36,49 @@ namespace ClientPartWinForm
             // Send the username to the server
             await writer.WriteLineAsync(Username);
 
-            string serverResponse = await reader.ReadLineAsync();
+            string? serverResponse = await reader.ReadLineAsync();
 
-            if (serverResponse.StartsWith("Server: Username is already taken"))
+            if (serverResponse.StartsWith("Username is already taken. Please choose another one."))
             {
                 // Close the connection and raise the ServerDisconnected event
                 TcpClient.Close();
-                ServerDisconnected?.Invoke(this, EventArgs.Empty);
+                UsernameAlreadyTaken?.Invoke(this, EventArgs.Empty);
+                return false;
+            }
+
+            // Start listening for incoming messages
+            Task.Run(() => MonitorConnectionAsync());
+            Task.Run(() => ReceiveMessagesAsync());
+
+            return true;
+        }
+
+        /*public async Task ConnectAsync(IPAddress serverIpAddress, int port)
+        {
+            TcpClient = new TcpClient();
+            await TcpClient.ConnectAsync(serverIpAddress, port);
+
+            NetworkStream stream = TcpClient.GetStream();
+            StreamWriter writer = new StreamWriter(stream, Encoding.UTF8) { AutoFlush = true };
+            StreamReader reader = new StreamReader(stream, Encoding.UTF8);
+
+            // Send the username to the server
+            await writer.WriteLineAsync(Username);
+
+            string? serverResponse = await reader.ReadLineAsync();
+
+            if (serverResponse.StartsWith("Username is already taken. Please choose another one."))
+            {
+                // Close the connection and raise the ServerDisconnected event
+                TcpClient.Close();
+                UsernameAlreadyTaken?.Invoke(this, EventArgs.Empty);
                 return;
             }
 
             // Start listening for incoming messages
             Task.Run(() => MonitorConnectionAsync());
             Task.Run(() => ReceiveMessagesAsync());
-        }
+        }*/
 
         public async Task SendMessageAsync(string message)
         {
@@ -82,7 +113,6 @@ namespace ClientPartWinForm
 
             // Clean up after disconnection
             TcpClient.Close();
-            Console.WriteLine("Disconnected from server.");
         }
 
         private async Task MonitorConnectionAsync()
@@ -97,7 +127,7 @@ namespace ClientPartWinForm
             ServerDisconnected?.Invoke(this, EventArgs.Empty);
         }
 
-        public bool IsClientConnected(TcpClient tcpClient)
+        private bool IsClientConnected(TcpClient tcpClient)
         {
             if (tcpClient == null || !tcpClient.Connected)
             {

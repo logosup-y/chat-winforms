@@ -6,8 +6,8 @@ namespace ServerPartWinForm
 {
     public partial class ServerForm : Form
     {
-        private ChatServer _server;
-        private Task _serverTask;
+        private ChatServer? _server;
+        private Task? _serverTask;
 
         public ServerForm()
         {
@@ -20,7 +20,10 @@ namespace ServerPartWinForm
             ConnectButton.Enabled = false;
             DisconnectButton.Enabled = true;
 
-            _server = new ChatServer(this, IPAddress.Any, 5000);
+            _server = new ChatServer(IPAddress.Any, 5000);
+            _server.OnLogMessage += Server_OnLogMessage;
+
+
             _serverTask = _server.StartAsync();
 
             labelStatus.Text = "Server is running...";
@@ -33,16 +36,16 @@ namespace ServerPartWinForm
             ConnectButton.Enabled = true;
             DisconnectButton.Enabled = false;
 
-            _server.Stop();
+            _server?.Stop();
             _serverTask = null;
 
             labelStatus.Text = "Server is stopped.";
-            richTextBoxLog.AppendText($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Server stopped.\n");
+            LogMessage($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Server is stopped.");
         }
 
         public void LogMessage(string message)
         {
-            if (richTextBoxLog.InvokeRequired)
+           if (richTextBoxLog.InvokeRequired)
             {
                 richTextBoxLog.Invoke(new Action<string>(LogMessage), message);
             }
@@ -50,6 +53,11 @@ namespace ServerPartWinForm
             {
                 richTextBoxLog.AppendText($"{$"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] {message}"}\n");
             }
+        }
+
+        private void Server_OnLogMessage(object sender, string message)
+        {
+            LogMessage(message);
         }
     }
 }

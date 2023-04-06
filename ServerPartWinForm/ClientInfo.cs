@@ -9,7 +9,7 @@ namespace ServerPartWinForm
 {
     public class ClientInfo
     {
-        public string Username { get; set; }
-        public TcpClient TcpClient { get; set; }
+        public string? Username { get; set; }
+        public TcpClient? TcpClient { get; set; }
     }
 }

@@ -31,23 +31,64 @@ namespace ClientPartWinForm
             string username = usernameTextBox.Text;
             _client = new ChatClient(username);
 
+            bool connected = false;
             try
             {
-                await _client.ConnectAsync(IPAddress.Loopback, 5000);
-                disconnectButton.Enabled = true;
-                connectionStatus.Text = $"Connected as \"{username}\"";
-                sendButton.Enabled = true;
-                messagesRichTextBox.Invoke(new Action(() => messagesRichTextBox.AppendText($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] You are connected\n")));
-                _client.MessageReceived += OnMessageReceived;
-                _client.ServerDisconnected += OnServerDisconnected;
+                connected = await _client.ConnectAsync(IPAddress.Loopback, 5000);
             }
             catch
             {
                 MessageBox.Show($"Error connecting to server", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+            if (connected)
+            {
+                disconnectButton.Enabled = true;
+                connectionStatus.Text = $"Connected as \"{username}\"";
+                sendButton.Enabled = true;
+                _client.MessageReceived += OnMessageReceived;
+                _client.UsernameAlreadyTaken += OnUsernameAlreadyTaken;
+                _client.ServerDisconnected += OnServerDisconnected;
+            }
+            else
+            {
+                MessageBox.Show("Username is already taken. Please choose another one.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 connectButton.Enabled = true;
                 usernameTextBox.Enabled = true;
             }
         }
+
+        /* private async void connectButton_Click(object sender, EventArgs e)
+         {
+             if (string.IsNullOrWhiteSpace(usernameTextBox.Text) || usernameTextBox.Text == "Input your username")
+             {
+                 MessageBox.Show("Please enter a username before connecting.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                 return;
+             }
+
+             connectButton.Enabled = false;
+             usernameTextBox.Enabled = false;
+
+             string username = usernameTextBox.Text;
+             _client = new ChatClient(username);
+
+             try
+             {
+                 await _client.ConnectAsync(IPAddress.Loopback, 5000);
+                 disconnectButton.Enabled = true;
+                 connectionStatus.Text = $"Connected as \"{username}\"";
+                 sendButton.Enabled = true;                
+                 _client.MessageReceived += OnMessageReceived;
+                 _client.UsernameAlreadyTaken += OnUsernameAlreadyTaken;
+                 _client.ServerDisconnected += OnServerDisconnected;
+             }
+             catch
+             {
+                 MessageBox.Show($"Error connecting to server", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                 connectButton.Enabled = true;
+                 usernameTextBox.Enabled = true;
+             }
+         }*/
 
         private void OnMessageReceived(object sender, string message)
         {
@@ -91,8 +132,6 @@ namespace ClientPartWinForm
             {
                 MessageBox.Show($"Error sending message: Your are not connected", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-
-
         }
 
         private void OnServerDisconnected(object sender, EventArgs e)
@@ -106,9 +145,9 @@ namespace ClientPartWinForm
                 connectionStatus.Text = "Disconnected";
             }));
 
-            messagesRichTextBox.Invoke(new Action(() => messagesRichTextBox.AppendText($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Connection with server lost\n")));
+            messagesRichTextBox.Invoke(new Action(() => messagesRichTextBox.AppendText($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Connection with server lost\n")));            
         }
-
+        
         private void usernameTextBox_Click(object sender, EventArgs e)
         {
             if (usernameTextBox.Text == "Input your username")
@@ -134,6 +173,17 @@ namespace ClientPartWinForm
                 usernameTextBox.Text = "";
                 usernameTextBox.ForeColor = Color.Black;
             }
+        }
+
+        private void OnUsernameAlreadyTaken(object sender, EventArgs e)
+        {
+            MessageBox.Show("Username is already taken. Please choose another one.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+            connectButton.Invoke(new Action(() =>
+            {
+                connectButton.Enabled = true;
+                usernameTextBox.Enabled = true;
+            }));
         }
     }
 }
