@@ -12,19 +12,19 @@ namespace ServerPartWinForm
         public ServerForm()
         {
             InitializeComponent();
-            DisconnectButton.Enabled = false;
+            disconnectButton.Enabled = false;
         }
 
         private async void Connect_Click(object sender, EventArgs e)
         {
             ConnectButton.Enabled = false;
-            DisconnectButton.Enabled = true;
+            disconnectButton.Enabled = true;
 
             _server = new ChatServer(IPAddress.Any, 5000);
             _server.OnLogMessage += Server_OnLogMessage;
 
 
-            _serverTask = _server.StartAsync();
+            _serverTask = _server.StartAsync_ListenClients();
 
             labelStatus.Text = "Server is running...";
 
@@ -34,24 +34,24 @@ namespace ServerPartWinForm
         private void DisconnectButton_Click(object sender, EventArgs e)
         {
             ConnectButton.Enabled = true;
-            DisconnectButton.Enabled = false;
+            disconnectButton.Enabled = false;
 
             _server?.Stop();
             _serverTask = null;
 
             labelStatus.Text = "Server is stopped.";
-            LogMessage($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Server is stopped.");
+            LogMessage($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Server is stopped.");
         }
 
-        public void LogMessage(string message)
+        private void LogMessage(string message)
         {
-           if (richTextBoxLog.InvokeRequired)
+            if (richTextBoxLog.InvokeRequired)
             {
                 richTextBoxLog.Invoke(new Action<string>(LogMessage), message);
             }
             else
             {
-                richTextBoxLog.AppendText($"{$"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] {message}"}\n");
+                richTextBoxLog.AppendText($"{$"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}"}\n");
             }
         }
 

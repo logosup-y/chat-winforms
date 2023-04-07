@@ -30,56 +30,61 @@
         {
             labelStatus = new Label();
             ConnectButton = new Button();
-            DisconnectButton = new Button();
+            disconnectButton = new Button();
             richTextBoxLog = new RichTextBox();
             SuspendLayout();
             // 
             // labelStatus
             // 
-            labelStatus.Location = new Point(12, 9);
+            labelStatus.Location = new Point(15, 11);
+            labelStatus.Margin = new Padding(4, 0, 4, 0);
             labelStatus.Name = "labelStatus";
-            labelStatus.Size = new Size(318, 20);
+            labelStatus.Size = new Size(398, 25);
             labelStatus.TabIndex = 0;
             labelStatus.Text = "status connection";
             // 
             // ConnectButton
             // 
-            ConnectButton.Location = new Point(556, 5);
+            ConnectButton.Location = new Point(695, 6);
+            ConnectButton.Margin = new Padding(4, 4, 4, 4);
             ConnectButton.Name = "ConnectButton";
-            ConnectButton.Size = new Size(94, 29);
+            ConnectButton.Size = new Size(118, 36);
             ConnectButton.TabIndex = 1;
             ConnectButton.Text = "Connect";
             ConnectButton.UseVisualStyleBackColor = true;
             ConnectButton.Click += Connect_Click;
             // 
-            // DisconnectButton
+            // disconnectButton
             // 
-            DisconnectButton.Location = new Point(681, 5);
-            DisconnectButton.Name = "DisconnectButton";
-            DisconnectButton.Size = new Size(94, 29);
-            DisconnectButton.TabIndex = 2;
-            DisconnectButton.Text = "Disconnect";
-            DisconnectButton.UseVisualStyleBackColor = true;
-            DisconnectButton.Click += DisconnectButton_Click;
+            disconnectButton.Location = new Point(851, 6);
+            disconnectButton.Margin = new Padding(4, 4, 4, 4);
+            disconnectButton.Name = "disconnectButton";
+            disconnectButton.Size = new Size(118, 36);
+            disconnectButton.TabIndex = 2;
+            disconnectButton.Text = "Disconnect";
+            disconnectButton.UseVisualStyleBackColor = true;
+            disconnectButton.Click += DisconnectButton_Click;
             // 
             // richTextBoxLog
             // 
-            richTextBoxLog.Location = new Point(12, 40);
+            richTextBoxLog.Location = new Point(15, 50);
+            richTextBoxLog.Margin = new Padding(4, 4, 4, 4);
             richTextBoxLog.Name = "richTextBoxLog";
             richTextBoxLog.ReadOnly = true;
-            richTextBoxLog.Size = new Size(763, 398);
+            richTextBoxLog.Size = new Size(953, 496);
             richTextBoxLog.TabIndex = 3;
             richTextBoxLog.Text = "";
             // 
             // ServerForm
             // 
-            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
+            ClientSize = new Size(1000, 562);
             Controls.Add(richTextBoxLog);
-            Controls.Add(DisconnectButton);
+            Controls.Add(disconnectButton);
             Controls.Add(ConnectButton);
             Controls.Add(labelStatus);
+            Margin = new Padding(4, 4, 4, 4);
             Name = "ServerForm";
             Text = "Server";
             ResumeLayout(false);
@@ -89,7 +94,7 @@
 
         private Label labelStatus;
         private Button ConnectButton;
-        private Button DisconnectButton;
+        private Button disconnectButton;
         private RichTextBox richTextBoxLog;
     }
 }

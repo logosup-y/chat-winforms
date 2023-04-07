@@ -29,7 +29,7 @@ namespace ServerPartWinForm
             _listener = new TcpListener(ServerIpAddress, Port);
         }
 
-        public async Task StartAsync()
+        public async Task StartAsync_ListenClients()
         {            
             _listener.Start();
             _isRunning = true;
@@ -58,16 +58,57 @@ namespace ServerPartWinForm
             _isRunning = false;
             _listener.Stop();
 
-            // Close all connected clients
-            foreach (var clientInfo in ConnectedClients)
+            foreach (var client in ConnectedClients)
             {
-                clientInfo.TcpClient?.Close();
+                client.TcpClient?.Close();
             }
 
             ConnectedClients.Clear();
         }
 
-        private async Task HandleClientAsync(ClientInfo clientInfo, StreamReader reader, StreamWriter writer)
+        private async Task AcceptClientAsync()
+        {
+            TcpClient pendingClient = await _listener.AcceptTcpClientAsync();
+
+            ClientInfo clientInfo = new ClientInfo { TcpClient = pendingClient };
+
+            NetworkStream stream = clientInfo.TcpClient.GetStream();
+            StreamWriter writer = new(stream, Encoding.UTF8) { AutoFlush = true };
+            StreamReader reader = new(stream, Encoding.UTF8);
+            
+
+            clientInfo.SetReader(reader);
+            clientInfo.SetWriter(writer);
+
+            if (IsClientNameUnique(clientInfo))
+            {
+                ConnectedClients.Add(clientInfo);
+                await writer.WriteLineAsync($"You are connected to the server");
+                _ = Task.Run(() => HandleClientAsync(clientInfo));
+            }
+            else
+            {
+                await RefuseClient(clientInfo);
+            }
+        }
+
+        private bool IsClientNameUnique(ClientInfo clientInfo)
+        {
+            // Read the client's username
+            string? Username = clientInfo.Reader.ReadLine();
+
+            if (ConnectedClients.Any(c => c.Username.Equals(Username, StringComparison.OrdinalIgnoreCase)))
+            {
+                return false;
+            }
+            else
+            {
+                clientInfo.Username = Username;
+                return true;
+            }
+        }
+
+        private async Task HandleClientAsync(ClientInfo clientInfo)
         {
             try
             {                
@@ -76,7 +117,7 @@ namespace ServerPartWinForm
 
                 while (clientInfo.TcpClient.Connected)
                 {
-                    string message = await reader.ReadLineAsync();
+                    string message = await clientInfo.Reader.ReadLineAsync();
 
                     if (clientInfo.TcpClient.Connected && !string.IsNullOrEmpty(message))
                     {
@@ -95,88 +136,30 @@ namespace ServerPartWinForm
             }
             finally
             {
-                RaiseLogMessageEvent($"Client {clientInfo.Username} disconnected.");
-                BroadcastMessage($"Server: {clientInfo.Username} has left the chat.");
+                RaiseLogMessageEvent($"Client \"{clientInfo.Username}\" disconnected.");
+                BroadcastMessage($"Server: \"{clientInfo.Username}\" has left the chat.");
                 ConnectedClients.RemoveAll(c => c.Username == clientInfo.Username);
                 clientInfo.TcpClient?.Close();
             }
         }
 
         private void BroadcastMessage(string message)
-        {
-            /*Console.WriteLine(message);*/
-
-            foreach (var clientInfo in ConnectedClients)
+        {            
+            foreach (var client in ConnectedClients)
             {
-                NetworkStream stream = clientInfo.TcpClient.GetStream();
-                StreamWriter writer = new StreamWriter(stream, new UTF8Encoding(false)) { AutoFlush = true };
+                StreamWriter writer = client.Writer;
                 writer.WriteLine($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] {message}");
             }
         }
 
-        protected void RaiseLogMessageEvent(string message)
+        private void RaiseLogMessageEvent(string message)
         {
             OnLogMessage?.Invoke(this, message);
         }
-
-        private async Task AcceptClientAsync()
-        {
-            TcpClient client = await _listener.AcceptTcpClientAsync();
-
-            ClientInfo clientInfo = new ClientInfo { TcpClient = client };                    
-
-            NetworkStream stream = clientInfo.TcpClient.GetStream();
-            StreamReader reader = new(stream, Encoding.UTF8);
-            StreamWriter writer = new(stream, Encoding.UTF8);
-
-            if (IsClientNameUnique(clientInfo, reader, writer))
-            {
-                ConnectedClients.Add(clientInfo);
-                _ = Task.Run(() => HandleClientAsync(clientInfo, reader, writer));
-            } 
-            else
-            {
-                await RefuseClient(clientInfo);
-            }
-        }
-
-        private bool IsClientNameUnique(ClientInfo clientInfo, StreamReader reader, StreamWriter writer)
-        {
-            // Read the client's username
-            string? Username = reader.ReadLine();
-
-            if (ConnectedClients.Any(c => c.Username.Equals(Username, StringComparison.OrdinalIgnoreCase)))
-            {
-                return false;
-            }
-            else
-            {
-                clientInfo.Username = Username;
-                return true;
-            }
-
-            /* if (ConnectedClients.Count <= 1)
-             {
-                 clientInfo.Username = Username;
-                 return true;
-             }
-             else if (ConnectedClients.Take(ConnectedClients.Count - 1).Any(c => c.Username.Equals(Username, StringComparison.OrdinalIgnoreCase)))
-             {
-                 // Notify the client that the username is not unique and close the connection
-                 clientInfo.Username = Username;                
-                 return false;
-             }
-             else
-             {
-                 clientInfo.Username = Username;
-                 return true;
-             }*/
-        }
-
+        
         private async Task RefuseClient(ClientInfo clientInfo)
         {
-            NetworkStream stream = clientInfo.TcpClient.GetStream();            
-            StreamWriter writer = new(stream, Encoding.UTF8) { AutoFlush = true };
+            StreamWriter writer = clientInfo.Writer;
 
             await writer.WriteLineAsync($"Username is already taken. Please choose another one.");            
             await Task.Delay(500);

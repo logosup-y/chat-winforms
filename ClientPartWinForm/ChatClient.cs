@@ -13,11 +13,14 @@ namespace ClientPartWinForm
         public string Username { get; private set; }
         public TcpClient TcpClient { get; private set; }
 
-        public event EventHandler<string> MessageReceived;
+        private StreamWriter? _writer;
+        private StreamReader? _reader;
 
-        public event EventHandler ServerDisconnected;
+        public event EventHandler<string>? MessageReceived;
 
-        public event EventHandler UsernameAlreadyTaken;
+        public event EventHandler? ServerDisconnected;
+
+        public event EventHandler? UsernameAlreadyTaken;
 
         public ChatClient(string username)
         {
@@ -30,89 +33,50 @@ namespace ClientPartWinForm
             await TcpClient.ConnectAsync(serverIpAddress, port);
 
             NetworkStream stream = TcpClient.GetStream();
-            StreamWriter writer = new StreamWriter(stream, Encoding.UTF8) { AutoFlush = true };
-            StreamReader reader = new StreamReader(stream, Encoding.UTF8);
+            _writer = new StreamWriter(stream, Encoding.UTF8) { AutoFlush = true };
+            _reader = new StreamReader(stream, Encoding.UTF8);
 
             // Send the username to the server
-            await writer.WriteLineAsync(Username);
+            await _writer.WriteLineAsync(Username);
 
-            string? serverResponse = await reader.ReadLineAsync();
+            string? serverResponse = await _reader.ReadLineAsync();
 
-            if (serverResponse.StartsWith("Username is already taken. Please choose another one."))
+            if (serverResponse?.StartsWith("Username is already taken. Please choose another one.") == true)
             {
-                // Close the connection and raise the ServerDisconnected event
-                TcpClient.Close();
+                CloseConnection();
                 UsernameAlreadyTaken?.Invoke(this, EventArgs.Empty);
                 return false;
             }
 
-            // Start listening for incoming messages
-            Task.Run(() => MonitorConnectionAsync());
-            Task.Run(() => ReceiveMessagesAsync());
+            _ = Task.Run(() => MonitorConnectionAsync());
+            _ = Task.Run(() => ReceiveMessagesAsync());
 
             return true;
         }
 
-        /*public async Task ConnectAsync(IPAddress serverIpAddress, int port)
-        {
-            TcpClient = new TcpClient();
-            await TcpClient.ConnectAsync(serverIpAddress, port);
-
-            NetworkStream stream = TcpClient.GetStream();
-            StreamWriter writer = new StreamWriter(stream, Encoding.UTF8) { AutoFlush = true };
-            StreamReader reader = new StreamReader(stream, Encoding.UTF8);
-
-            // Send the username to the server
-            await writer.WriteLineAsync(Username);
-
-            string? serverResponse = await reader.ReadLineAsync();
-
-            if (serverResponse.StartsWith("Username is already taken. Please choose another one."))
-            {
-                // Close the connection and raise the ServerDisconnected event
-                TcpClient.Close();
-                UsernameAlreadyTaken?.Invoke(this, EventArgs.Empty);
-                return;
-            }
-
-            // Start listening for incoming messages
-            Task.Run(() => MonitorConnectionAsync());
-            Task.Run(() => ReceiveMessagesAsync());
-        }*/
-
         public async Task SendMessageAsync(string message)
-        {
-            NetworkStream stream = TcpClient.GetStream();
-            StreamWriter writer = new StreamWriter(stream, new UTF8Encoding(false)) { AutoFlush = true };
-
-            await writer.WriteLineAsync(message);
+        {            
+            await _writer.WriteLineAsync(message);
         }
 
         private async Task ReceiveMessagesAsync()
-        {
+        {            
             while (TcpClient.Connected)
             {
                 try
                 {
-                    NetworkStream stream = TcpClient.GetStream();
-                    StreamReader reader = new StreamReader(stream, new UTF8Encoding(false));
-
-                    string message = await reader.ReadLineAsync();
+                    string? message = await _reader.ReadLineAsync();
 
                     if (!string.IsNullOrEmpty(message))
                     {
-                        MessageReceived?.Invoke(this, message);                        
+                        MessageReceived?.Invoke(this, message);
                     }
                 }
-
                 catch (IOException)
                 {
                     break;
                 }
             }
-
-            // Clean up after disconnection
-            TcpClient.Close();
         }
 
         private async Task MonitorConnectionAsync()
@@ -120,10 +84,10 @@ namespace ClientPartWinForm
             while (IsClientConnected(TcpClient))
             {
                 await Task.Delay(500);
-
                 continue;
             }
 
+            CloseConnection();
             ServerDisconnected?.Invoke(this, EventArgs.Empty);
         }
 
@@ -152,6 +116,11 @@ namespace ClientPartWinForm
             {
                 return false;
             }
+        }
+
+        private void CloseConnection()
+        {
+            TcpClient.Close();
         }
     }
 }

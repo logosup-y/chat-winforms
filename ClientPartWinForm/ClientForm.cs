@@ -7,12 +7,12 @@ namespace ClientPartWinForm
 {
     public partial class ClientForm : Form
     {
-        private ChatClient _client;
+        private ChatClient? _client;
         public ClientForm()
         {
             InitializeComponent();
             sendButton.Enabled = false;
-            disconnectButton.Enabled = false;
+            DisconnectButton.Enabled = false;
             usernameTextBox.Text = "Input your username";
             usernameTextBox.ForeColor = Color.Gray;
         }
@@ -31,24 +31,28 @@ namespace ClientPartWinForm
             string username = usernameTextBox.Text;
             _client = new ChatClient(username);
 
-            bool connected = false;
+            bool isConnected = false;
+
             try
             {
-                connected = await _client.ConnectAsync(IPAddress.Loopback, 5000);
+                isConnected = await _client.ConnectAsync(IPAddress.Loopback, 5000);
             }
             catch
             {
                 MessageBox.Show($"Error connecting to server", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
-            if (connected)
+            if (isConnected)
             {
-                disconnectButton.Enabled = true;
+                DisconnectButton.Enabled = true;
                 connectionStatus.Text = $"Connected as \"{username}\"";
                 sendButton.Enabled = true;
+
                 _client.MessageReceived += OnMessageReceived;
                 _client.UsernameAlreadyTaken += OnUsernameAlreadyTaken;
                 _client.ServerDisconnected += OnServerDisconnected;
+
+                messagesRichTextBox.Invoke(new Action(() => messagesRichTextBox.AppendText($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] You are connected\n")));
             }
             else
             {
@@ -58,55 +62,23 @@ namespace ClientPartWinForm
             }
         }
 
-        /* private async void connectButton_Click(object sender, EventArgs e)
-         {
-             if (string.IsNullOrWhiteSpace(usernameTextBox.Text) || usernameTextBox.Text == "Input your username")
-             {
-                 MessageBox.Show("Please enter a username before connecting.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                 return;
-             }
-
-             connectButton.Enabled = false;
-             usernameTextBox.Enabled = false;
-
-             string username = usernameTextBox.Text;
-             _client = new ChatClient(username);
-
-             try
-             {
-                 await _client.ConnectAsync(IPAddress.Loopback, 5000);
-                 disconnectButton.Enabled = true;
-                 connectionStatus.Text = $"Connected as \"{username}\"";
-                 sendButton.Enabled = true;                
-                 _client.MessageReceived += OnMessageReceived;
-                 _client.UsernameAlreadyTaken += OnUsernameAlreadyTaken;
-                 _client.ServerDisconnected += OnServerDisconnected;
-             }
-             catch
-             {
-                 MessageBox.Show($"Error connecting to server", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                 connectButton.Enabled = true;
-                 usernameTextBox.Enabled = true;
-             }
-         }*/
-
         private void OnMessageReceived(object sender, string message)
         {
             messagesRichTextBox.Invoke(new Action(() => messagesRichTextBox.AppendText($"{message}\n")));
         }
 
-        private void disconnectButton_Click(object sender, EventArgs e)
+        private void DisconnectButton_Click(object sender, EventArgs e)
         {
-            disconnectButton.Enabled = false;
+            DisconnectButton.Enabled = false;
             connectButton.Enabled = true;
             sendButton.Enabled = false;
             usernameTextBox.Enabled = true;
 
-            _client.TcpClient.Close();
+            _client?.TcpClient.Close();
             connectionStatus.Text = "Disconnected";
         }
 
-        private async void sendButton_Click(object sender, EventArgs e)
+        private async void SendButton_Click(object sender, EventArgs e)
         {
             var message = messageTextBox.Text.Split("\n\r".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 
@@ -117,7 +89,6 @@ namespace ClientPartWinForm
                 splitMessage.Append($"{line} ");
             }
 
-            // Check if the message is empty or contains only whitespace characters
             if (string.IsNullOrEmpty(splitMessage.ToString()))
             {
                 return;
@@ -136,19 +107,19 @@ namespace ClientPartWinForm
 
         private void OnServerDisconnected(object sender, EventArgs e)
         {
-            disconnectButton.Invoke(new Action(() =>
+            DisconnectButton.Invoke(new Action(() =>
             {
-                disconnectButton.Enabled = false;
+                DisconnectButton.Enabled = false;
                 connectButton.Enabled = true;
                 sendButton.Enabled = false;
                 usernameTextBox.Enabled = true;
                 connectionStatus.Text = "Disconnected";
             }));
 
-            messagesRichTextBox.Invoke(new Action(() => messagesRichTextBox.AppendText($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Connection with server lost\n")));            
+            messagesRichTextBox.Invoke(new Action(() => messagesRichTextBox.AppendText($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Connection with server lost\n")));
         }
-        
-        private void usernameTextBox_Click(object sender, EventArgs e)
+
+        private void UsernameTextBox_Click(object sender, EventArgs e)
         {
             if (usernameTextBox.Text == "Input your username")
             {
@@ -157,7 +128,7 @@ namespace ClientPartWinForm
             }
         }
 
-        private void usernameTextBox_Leave(object sender, EventArgs e)
+        private void UsernameTextBox_Leave(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(usernameTextBox.Text))
             {
@@ -166,7 +137,7 @@ namespace ClientPartWinForm
             }
         }
 
-        private void usernameTextBox_Enter(object sender, EventArgs e)
+        private void UsernameTextBox_Enter(object sender, EventArgs e)
         {
             if (usernameTextBox.Text == "Input your username")
             {
