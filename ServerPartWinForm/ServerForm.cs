@@ -1,6 +1,4 @@
-using System;
 using System.Net;
-using System.Windows.Forms;
 
 namespace ServerPartWinForm
 {
@@ -13,14 +11,23 @@ namespace ServerPartWinForm
         {
             InitializeComponent();
             disconnectButton.Enabled = false;
+            connectionPortTextBox.Text = "Port";
+            connectionPortTextBox.ForeColor = Color.Gray;
         }
 
         private async void Connect_Click(object sender, EventArgs e)
         {
+            var (isInputValid, port) = ValidateInput();
+            if (!isInputValid)
+            {
+                return;
+            }
+
             ConnectButton.Enabled = false;
             disconnectButton.Enabled = true;
+            connectionPortTextBox.Enabled = false;
 
-            _server = new ChatServer(IPAddress.Any, 5000);
+            _server = new ChatServer(IPAddress.Any, port);
             _server.OnLogMessage += Server_OnLogMessage;
 
 
@@ -35,6 +42,7 @@ namespace ServerPartWinForm
         {
             ConnectButton.Enabled = true;
             disconnectButton.Enabled = false;
+            connectionPortTextBox.Enabled = true;
 
             _server?.Stop();
             _serverTask = null;
@@ -58,6 +66,60 @@ namespace ServerPartWinForm
         private void Server_OnLogMessage(object sender, string message)
         {
             LogMessage(message);
+        }
+
+        private void ConnectionPort_Click(object sender, EventArgs e)
+        {
+            if (connectionPortTextBox.Text == "Port")
+            {
+                connectionPortTextBox.Text = "";
+                connectionPortTextBox.ForeColor = Color.Black;
+            }
+        }
+
+        private void ConnectionPort_Leave(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(connectionPortTextBox.Text))
+            {
+                connectionPortTextBox.Text = "Port";
+                connectionPortTextBox.ForeColor = Color.Gray;
+            }
+        }
+
+        private void ConnectionPort_Enter(object sender, EventArgs e)
+        {
+            if (connectionPortTextBox.Text == "Port")
+            {
+                connectionPortTextBox.Text = "";
+                connectionPortTextBox.ForeColor = Color.Black;
+            }
+        }
+
+        private (bool, ushort) ValidateInput()
+        {
+            if (string.IsNullOrWhiteSpace(connectionPortTextBox.Text) || connectionPortTextBox.Text == "Input your username")
+            {
+                MessageBox.Show("Please enter a username before connecting.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return (false, 0);
+            }
+
+            if (string.IsNullOrWhiteSpace(connectionPortTextBox.Text) || connectionPortTextBox.Text == "Port")
+            {
+                MessageBox.Show("Please enter a port number before connecting.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return (false, 0);
+            }
+
+            string connectionPortText = connectionPortTextBox.Text;
+            ushort port;
+            bool conversionSuccessful = ushort.TryParse(connectionPortText, out port);
+
+            if (!conversionSuccessful || port == 0)
+            {
+                MessageBox.Show("Invalid port number. Please enter a value between 1 and 65,535.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return (false, 0);
+            }
+
+            return (true, port);
         }
     }
 }

@@ -1,27 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Runtime.CompilerServices;
 
 namespace ServerPartWinForm
 {
     public class ChatServer
     {        
         public IPAddress ServerIpAddress { get; private set; }
-        public int Port { get; private set; }
+        public ushort Port { get; private set; }
         public List<ClientInfo> ConnectedClients { get; private set; }
 
         public event EventHandler<string>? OnLogMessage;
-
-        private TcpListener _listener;
+                
+        private readonly TcpListener _listener;
         private bool _isRunning;
 
-        public ChatServer(IPAddress ipAddress, int port)
+        public ChatServer(IPAddress ipAddress, ushort port)
         {           
             ServerIpAddress = ipAddress;
             Port = port;
@@ -81,10 +75,9 @@ namespace ServerPartWinForm
             clientInfo.SetWriter(writer);
 
             if (IsClientNameUnique(clientInfo))
-            {
-                ConnectedClients.Add(clientInfo);
-                await writer.WriteLineAsync($"You are connected to the server");
-                _ = Task.Run(() => HandleClientAsync(clientInfo));
+            {                
+                ConnectedClients.Add(clientInfo);                
+                _ = Task.Run(() => HandleClientAsync(clientInfo));                
             }
             else
             {
@@ -146,9 +139,8 @@ namespace ServerPartWinForm
         private void BroadcastMessage(string message)
         {            
             foreach (var client in ConnectedClients)
-            {
-                StreamWriter writer = client.Writer;
-                writer.WriteLine($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] {message}");
+            {   
+                client.Writer?.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}");
             }
         }
 
@@ -158,10 +150,8 @@ namespace ServerPartWinForm
         }
         
         private async Task RefuseClient(ClientInfo clientInfo)
-        {
-            StreamWriter writer = clientInfo.Writer;
-
-            await writer.WriteLineAsync($"Username is already taken. Please choose another one.");            
+        {      
+            await clientInfo.Writer.WriteLineAsync($"Username is already taken. Please choose another one.");            
             await Task.Delay(500);
             ConnectedClients.Remove(clientInfo);
             clientInfo.TcpClient?.Close();

@@ -32,6 +32,7 @@
             ConnectButton = new Button();
             disconnectButton = new Button();
             richTextBoxLog = new RichTextBox();
+            connectionPortTextBox = new TextBox();
             SuspendLayout();
             // 
             // labelStatus
@@ -46,7 +47,7 @@
             // ConnectButton
             // 
             ConnectButton.Location = new Point(695, 6);
-            ConnectButton.Margin = new Padding(4, 4, 4, 4);
+            ConnectButton.Margin = new Padding(4);
             ConnectButton.Name = "ConnectButton";
             ConnectButton.Size = new Size(118, 36);
             ConnectButton.TabIndex = 1;
@@ -57,7 +58,7 @@
             // disconnectButton
             // 
             disconnectButton.Location = new Point(851, 6);
-            disconnectButton.Margin = new Padding(4, 4, 4, 4);
+            disconnectButton.Margin = new Padding(4);
             disconnectButton.Name = "disconnectButton";
             disconnectButton.Size = new Size(118, 36);
             disconnectButton.TabIndex = 2;
@@ -68,26 +69,39 @@
             // richTextBoxLog
             // 
             richTextBoxLog.Location = new Point(15, 50);
-            richTextBoxLog.Margin = new Padding(4, 4, 4, 4);
+            richTextBoxLog.Margin = new Padding(4);
             richTextBoxLog.Name = "richTextBoxLog";
             richTextBoxLog.ReadOnly = true;
-            richTextBoxLog.Size = new Size(953, 496);
+            richTextBoxLog.ScrollBars = RichTextBoxScrollBars.Vertical;
+            richTextBoxLog.Size = new Size(665, 496);
             richTextBoxLog.TabIndex = 3;
             richTextBoxLog.Text = "";
+            // 
+            // connectionPortTextBox
+            // 
+            connectionPortTextBox.Location = new Point(420, 9);
+            connectionPortTextBox.Name = "connectionPortTextBox";
+            connectionPortTextBox.Size = new Size(150, 31);
+            connectionPortTextBox.TabIndex = 4;
+            connectionPortTextBox.Click += ConnectionPort_Click;
+            connectionPortTextBox.Enter += ConnectionPort_Enter;
+            connectionPortTextBox.Leave += ConnectionPort_Leave;
             // 
             // ServerForm
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1000, 562);
+            Controls.Add(connectionPortTextBox);
             Controls.Add(richTextBoxLog);
             Controls.Add(disconnectButton);
             Controls.Add(ConnectButton);
             Controls.Add(labelStatus);
-            Margin = new Padding(4, 4, 4, 4);
+            Margin = new Padding(4);
             Name = "ServerForm";
             Text = "Server";
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -96,5 +110,6 @@
         private Button ConnectButton;
         private Button disconnectButton;
         private RichTextBox richTextBoxLog;
+        private TextBox connectionPortTextBox;
     }
 }

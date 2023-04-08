@@ -35,6 +35,7 @@
             messagesRichTextBox = new RichTextBox();
             messageTextBox = new TextBox();
             sendButton = new Button();
+            connectionPortTextBox = new TextBox();
             SuspendLayout();
             // 
             // connectionStatus
@@ -49,8 +50,8 @@
             // 
             // usernameTextBox
             // 
-            usernameTextBox.Location = new Point(342, 6);
-            usernameTextBox.Margin = new Padding(4, 4, 4, 4);
+            usernameTextBox.Location = new Point(177, 8);
+            usernameTextBox.Margin = new Padding(4);
             usernameTextBox.Name = "usernameTextBox";
             usernameTextBox.Size = new Size(354, 31);
             usernameTextBox.TabIndex = 1;
@@ -60,7 +61,7 @@
             // connectButton
             // 
             connectButton.Location = new Point(765, 5);
-            connectButton.Margin = new Padding(4, 4, 4, 4);
+            connectButton.Margin = new Padding(4);
             connectButton.Name = "connectButton";
             connectButton.Size = new Size(118, 36);
             connectButton.TabIndex = 2;
@@ -70,8 +71,8 @@
             // 
             // DisconnectButton
             // 
-            DisconnectButton.Location = new Point(931, 6);
-            DisconnectButton.Margin = new Padding(4, 4, 4, 4);
+            DisconnectButton.Location = new Point(918, 5);
+            DisconnectButton.Margin = new Padding(4);
             DisconnectButton.Name = "DisconnectButton";
             DisconnectButton.Size = new Size(118, 36);
             DisconnectButton.TabIndex = 3;
@@ -82,7 +83,7 @@
             // messagesRichTextBox
             // 
             messagesRichTextBox.Location = new Point(15, 54);
-            messagesRichTextBox.Margin = new Padding(4, 4, 4, 4);
+            messagesRichTextBox.Margin = new Padding(4);
             messagesRichTextBox.Name = "messagesRichTextBox";
             messagesRichTextBox.ReadOnly = true;
             messagesRichTextBox.Size = new Size(1033, 322);
@@ -92,7 +93,7 @@
             // messageTextBox
             // 
             messageTextBox.Location = new Point(15, 384);
-            messageTextBox.Margin = new Padding(4, 4, 4, 4);
+            messageTextBox.Margin = new Padding(4);
             messageTextBox.Multiline = true;
             messageTextBox.Name = "messageTextBox";
             messageTextBox.Size = new Size(866, 163);
@@ -101,7 +102,7 @@
             // sendButton
             // 
             sendButton.Location = new Point(890, 384);
-            sendButton.Margin = new Padding(4, 4, 4, 4);
+            sendButton.Margin = new Padding(4);
             sendButton.Name = "sendButton";
             sendButton.Size = new Size(159, 164);
             sendButton.TabIndex = 6;
@@ -109,11 +110,22 @@
             sendButton.UseVisualStyleBackColor = true;
             sendButton.Click += SendButton_Click;
             // 
+            // connectionPortTextBox
+            // 
+            connectionPortTextBox.Location = new Point(574, 8);
+            connectionPortTextBox.Name = "connectionPortTextBox";
+            connectionPortTextBox.Size = new Size(150, 31);
+            connectionPortTextBox.TabIndex = 7;
+            connectionPortTextBox.Click += ConnectionPortTextBox_Click;
+            connectionPortTextBox.Enter += ConnectionPortTextBox_Enter;
+            connectionPortTextBox.Leave += ConnectionPortTextBox_Leave;
+            // 
             // ClientForm
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1064, 562);
+            Controls.Add(connectionPortTextBox);
             Controls.Add(sendButton);
             Controls.Add(messageTextBox);
             Controls.Add(messagesRichTextBox);
@@ -121,7 +133,7 @@
             Controls.Add(connectButton);
             Controls.Add(usernameTextBox);
             Controls.Add(connectionStatus);
-            Margin = new Padding(4, 4, 4, 4);
+            Margin = new Padding(4);
             Name = "ClientForm";
             Text = "Client";
             ResumeLayout(false);
@@ -137,5 +149,6 @@
         private RichTextBox messagesRichTextBox;
         private TextBox messageTextBox;
         private Button sendButton;
+        private TextBox connectionPortTextBox;
     }
 }

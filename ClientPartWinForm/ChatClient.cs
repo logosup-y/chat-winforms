@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace ClientPartWinForm
 {
@@ -27,7 +23,7 @@ namespace ClientPartWinForm
             Username = username;
         }
 
-        public async Task<bool> ConnectAsync(IPAddress serverIpAddress, int port)
+        public async Task<bool> ConnectAsync(IPAddress serverIpAddress, ushort port)
         {
             TcpClient = new TcpClient();
             await TcpClient.ConnectAsync(serverIpAddress, port);
@@ -46,7 +42,7 @@ namespace ClientPartWinForm
                 CloseConnection();
                 UsernameAlreadyTaken?.Invoke(this, EventArgs.Empty);
                 return false;
-            }
+            }            
 
             _ = Task.Run(() => MonitorConnectionAsync());
             _ = Task.Run(() => ReceiveMessagesAsync());

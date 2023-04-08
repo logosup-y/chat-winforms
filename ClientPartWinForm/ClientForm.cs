@@ -1,7 +1,5 @@
 using System.Net;
 using System.Text;
-using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace ClientPartWinForm
 {
@@ -15,31 +13,39 @@ namespace ClientPartWinForm
             DisconnectButton.Enabled = false;
             usernameTextBox.Text = "Input your username";
             usernameTextBox.ForeColor = Color.Gray;
+            connectionPortTextBox.Text = "Port";
+            connectionPortTextBox.ForeColor = Color.Gray;
+
         }
 
         private async void connectButton_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(usernameTextBox.Text) || usernameTextBox.Text == "Input your username")
+            var (isInputValid, port) = ValidateInput();
+            if (!isInputValid)
             {
-                MessageBox.Show("Please enter a username before connecting.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
             connectButton.Enabled = false;
             usernameTextBox.Enabled = false;
-
+            connectionPortTextBox.Enabled = false;
+            
             string username = usernameTextBox.Text;
             _client = new ChatClient(username);
 
             bool isConnected = false;
+            bool isUsernameTaken = false;
 
             try
             {
-                isConnected = await _client.ConnectAsync(IPAddress.Loopback, 5000);
+                isConnected = await _client.ConnectAsync(IPAddress.Loopback, port);
             }
             catch
             {
                 MessageBox.Show($"Error connecting to server", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                connectButton.Enabled = true;
+                usernameTextBox.Enabled = true;
+                connectionPortTextBox.Enabled = true;
             }
 
             if (isConnected)
@@ -49,16 +55,17 @@ namespace ClientPartWinForm
                 sendButton.Enabled = true;
 
                 _client.MessageReceived += OnMessageReceived;
-                _client.UsernameAlreadyTaken += OnUsernameAlreadyTaken;
+                _client.UsernameAlreadyTaken += (s, args) => { isUsernameTaken = true; };
                 _client.ServerDisconnected += OnServerDisconnected;
 
                 messagesRichTextBox.Invoke(new Action(() => messagesRichTextBox.AppendText($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] You are connected\n")));
             }
-            else
+            else if (isUsernameTaken)
             {
                 MessageBox.Show("Username is already taken. Please choose another one.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 connectButton.Enabled = true;
                 usernameTextBox.Enabled = true;
+                connectionPortTextBox.Enabled = true;
             }
         }
 
@@ -73,6 +80,7 @@ namespace ClientPartWinForm
             connectButton.Enabled = true;
             sendButton.Enabled = false;
             usernameTextBox.Enabled = true;
+            connectionPortTextBox.Enabled = true;
 
             _client?.TcpClient.Close();
             connectionStatus.Text = "Disconnected";
@@ -101,7 +109,7 @@ namespace ClientPartWinForm
             }
             catch
             {
-                MessageBox.Show($"Error sending message: Your are not connected", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error sending message", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -116,7 +124,7 @@ namespace ClientPartWinForm
                 connectionStatus.Text = "Disconnected";
             }));
 
-            messagesRichTextBox.Invoke(new Action(() => messagesRichTextBox.AppendText($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Connection with server lost\n")));
+            messagesRichTextBox.Invoke(new Action(() => messagesRichTextBox.AppendText($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Connection with server lost\n")));
         }
 
         private void UsernameTextBox_Click(object sender, EventArgs e)
@@ -155,6 +163,60 @@ namespace ClientPartWinForm
                 connectButton.Enabled = true;
                 usernameTextBox.Enabled = true;
             }));
+        }
+
+        private void ConnectionPortTextBox_Click(object sender, EventArgs e)
+        {
+            if (connectionPortTextBox.Text == "Port")
+            {
+                connectionPortTextBox.Text = "";
+                connectionPortTextBox.ForeColor = Color.Black;
+            }
+        }
+
+        private void ConnectionPortTextBox_Enter(object sender, EventArgs e)
+        {
+            if (connectionPortTextBox.Text == "Port")
+            {
+                connectionPortTextBox.Text = "";
+                connectionPortTextBox.ForeColor = Color.Black;
+            }
+        }
+
+        private void ConnectionPortTextBox_Leave(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(connectionPortTextBox.Text))
+            {
+                connectionPortTextBox.Text = "Port";
+                connectionPortTextBox.ForeColor = Color.Gray;
+            }
+        }
+
+        private (bool, ushort) ValidateInput()
+        {
+            if (string.IsNullOrWhiteSpace(usernameTextBox.Text) || usernameTextBox.Text == "Input your username")
+            {
+                MessageBox.Show("Please enter a username before connecting.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return (false, 0);
+            }
+
+            if (string.IsNullOrWhiteSpace(connectionPortTextBox.Text) || connectionPortTextBox.Text == "Port")
+            {
+                MessageBox.Show("Please enter a port number before connecting.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return (false, 0);
+            }
+
+            string connectionPortText = connectionPortTextBox.Text;
+            ushort port;
+            bool conversionSuccessful = ushort.TryParse(connectionPortText, out port);
+
+            if (!conversionSuccessful || port == 0)
+            {
+                MessageBox.Show("Invalid port number. Please enter a value between 1 and 65,535.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return (false, 0);
+            }
+
+            return (true, port);
         }
     }
 }
