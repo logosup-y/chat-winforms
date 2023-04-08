@@ -46,6 +46,7 @@ namespace ClientPartWinForm
                 connectButton.Enabled = true;
                 usernameTextBox.Enabled = true;
                 connectionPortTextBox.Enabled = true;
+                return;
             }
 
             if (isConnected)
@@ -54,13 +55,12 @@ namespace ClientPartWinForm
                 connectionStatus.Text = $"Connected as \"{username}\"";
                 sendButton.Enabled = true;
 
-                _client.MessageReceived += OnMessageReceived;
-                _client.UsernameAlreadyTaken += (s, args) => { isUsernameTaken = true; };
+                _client.MessageReceived += OnMessageReceived;                
                 _client.ServerDisconnected += OnServerDisconnected;
 
                 messagesRichTextBox.Invoke(new Action(() => messagesRichTextBox.AppendText($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] You are connected\n")));
             }
-            else if (isUsernameTaken)
+            else
             {
                 MessageBox.Show("Username is already taken. Please choose another one.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 connectButton.Enabled = true;

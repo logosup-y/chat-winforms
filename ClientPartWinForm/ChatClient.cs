@@ -14,9 +14,7 @@ namespace ClientPartWinForm
 
         public event EventHandler<string>? MessageReceived;
 
-        public event EventHandler? ServerDisconnected;
-
-        public event EventHandler? UsernameAlreadyTaken;
+        public event EventHandler? ServerDisconnected;        
 
         public ChatClient(string username)
         {
@@ -39,8 +37,7 @@ namespace ClientPartWinForm
 
             if (serverResponse?.StartsWith("Username is already taken. Please choose another one.") == true)
             {
-                CloseConnection();
-                UsernameAlreadyTaken?.Invoke(this, EventArgs.Empty);
+                CloseConnection();                
                 return false;
             }            
 
