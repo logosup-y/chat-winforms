@@ -82,8 +82,7 @@ namespace ClientPartWinForm
             usernameTextBox.Enabled = true;
             connectionPortTextBox.Enabled = true;
 
-            _client?.TcpClient.Close();
-            connectionStatus.Text = "Disconnected";
+            _client?.TcpClient.Close();            
         }
 
         private async void SendButton_Click(object sender, EventArgs e)
@@ -124,7 +123,7 @@ namespace ClientPartWinForm
                 connectionStatus.Text = "Disconnected";
             }));
 
-            messagesRichTextBox.Invoke(new Action(() => messagesRichTextBox.AppendText($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Connection with server lost\n")));
+            messagesRichTextBox.Invoke(new Action(() => messagesRichTextBox.AppendText($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] You've disconnected\n")));
         }
 
         private void UsernameTextBox_Click(object sender, EventArgs e)

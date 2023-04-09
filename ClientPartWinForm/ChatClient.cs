@@ -37,6 +37,7 @@ namespace ClientPartWinForm
 
             if (serverResponse?.StartsWith("Username is already taken. Please choose another one.") == true)
             {
+                Console.WriteLine("Username is already taken. Please choose another one.");
                 CloseConnection();                
                 return false;
             }            

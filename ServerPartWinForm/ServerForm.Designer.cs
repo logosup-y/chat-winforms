@@ -33,6 +33,7 @@
             disconnectButton = new Button();
             richTextBoxLog = new RichTextBox();
             connectionPortTextBox = new TextBox();
+            connectedClientsList = new ListBox();
             SuspendLayout();
             // 
             // labelStatus
@@ -73,7 +74,7 @@
             richTextBoxLog.Name = "richTextBoxLog";
             richTextBoxLog.ReadOnly = true;
             richTextBoxLog.ScrollBars = RichTextBoxScrollBars.Vertical;
-            richTextBoxLog.Size = new Size(665, 496);
+            richTextBoxLog.Size = new Size(665, 503);
             richTextBoxLog.TabIndex = 3;
             richTextBoxLog.Text = "";
             // 
@@ -87,11 +88,20 @@
             connectionPortTextBox.Enter += ConnectionPort_Enter;
             connectionPortTextBox.Leave += ConnectionPort_Leave;
             // 
+            // connectedClientsList
+            // 
+            connectedClientsList.ItemHeight = 25;
+            connectedClientsList.Location = new Point(687, 49);
+            connectedClientsList.Name = "connectedClientsList";
+            connectedClientsList.Size = new Size(301, 504);
+            connectedClientsList.TabIndex = 5;
+            // 
             // ServerForm
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1000, 562);
+            Controls.Add(connectedClientsList);
             Controls.Add(connectionPortTextBox);
             Controls.Add(richTextBoxLog);
             Controls.Add(disconnectButton);
@@ -111,5 +121,6 @@
         private Button disconnectButton;
         private RichTextBox richTextBoxLog;
         private TextBox connectionPortTextBox;
+        private ListBox connectedClientsList;
     }
 }

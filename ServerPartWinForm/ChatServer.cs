@@ -11,7 +11,9 @@ namespace ServerPartWinForm
         public List<ClientInfo> ConnectedClients { get; private set; }
 
         public event EventHandler<string>? OnLogMessage;
-                
+        public event EventHandler<string>? OnClientConnected;
+        public event EventHandler<string>? OnClientDisconnected;
+
         private readonly TcpListener _listener;
         private bool _isRunning;
 
@@ -77,7 +79,8 @@ namespace ServerPartWinForm
             if (IsClientNameUnique(clientInfo))
             {                
                 ConnectedClients.Add(clientInfo);                
-                _ = Task.Run(() => HandleClientAsync(clientInfo));                
+                _ = Task.Run(() => HandleClientAsync(clientInfo));
+                _ = Task.Run(() => MonitorConnectionAsync(clientInfo));
             }
             else
             {
@@ -107,6 +110,7 @@ namespace ServerPartWinForm
             {                
                 RaiseLogMessageEvent($"Client \"{clientInfo.Username}\" connected.");
                 BroadcastMessage($"Server: Client \"{clientInfo.Username}\" has joined the chat.");
+                OnClientConnected?.Invoke(this, clientInfo.Username);
 
                 while (clientInfo.TcpClient.Connected)
                 {
@@ -130,9 +134,10 @@ namespace ServerPartWinForm
             finally
             {
                 RaiseLogMessageEvent($"Client \"{clientInfo.Username}\" disconnected.");
-                BroadcastMessage($"Server: \"{clientInfo.Username}\" has left the chat.");
+                BroadcastMessage($"Server: \"{clientInfo.Username}\" has left the chat.");                
                 ConnectedClients.RemoveAll(c => c.Username == clientInfo.Username);
-                clientInfo.TcpClient?.Close();
+                CloseConnection(clientInfo);
+                OnClientDisconnected?.Invoke(this, clientInfo.Username);
             }
         }
 
@@ -154,6 +159,51 @@ namespace ServerPartWinForm
             await clientInfo.Writer.WriteLineAsync($"Username is already taken. Please choose another one.");            
             await Task.Delay(500);
             ConnectedClients.Remove(clientInfo);
+            CloseConnection(clientInfo);
+        }
+
+        private async Task MonitorConnectionAsync(ClientInfo clientInfo)
+        {
+            while (IsClientConnected(clientInfo))
+            {
+                await Task.Delay(500);
+                continue;
+            }
+
+            ConnectedClients.RemoveAll(c => c.Username == clientInfo.Username);
+            CloseConnection(clientInfo);
+            OnClientDisconnected?.Invoke(this, clientInfo.Username);
+        }
+
+        private bool IsClientConnected(ClientInfo clientInfo)
+        {
+            if (clientInfo.TcpClient == null || !clientInfo.TcpClient.Connected)
+            {
+                return false;
+            }
+
+            try
+            {
+                if (clientInfo.TcpClient.Client.Poll(0, SelectMode.SelectRead))
+                {
+                    byte[] buffer = new byte[1];
+                    if (clientInfo.TcpClient.Client.Receive(buffer, SocketFlags.Peek) == 0)
+                    {
+                        // Socket has been closed
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            catch (SocketException)
+            {
+                return false;
+            }
+        }
+
+        private void CloseConnection(ClientInfo clientInfo)
+        {
             clientInfo.TcpClient?.Close();
         }
     }

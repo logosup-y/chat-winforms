@@ -12,7 +12,7 @@ namespace ServerPartWinForm
             InitializeComponent();
             disconnectButton.Enabled = false;
             connectionPortTextBox.Text = "Port";
-            connectionPortTextBox.ForeColor = Color.Gray;
+            connectionPortTextBox.ForeColor = Color.Gray;            
         }
 
         private async void Connect_Click(object sender, EventArgs e)
@@ -28,6 +28,8 @@ namespace ServerPartWinForm
             connectionPortTextBox.Enabled = false;
 
             _server = new ChatServer(IPAddress.Any, port);
+            _server.OnClientConnected += OnClientConnected;
+            _server.OnClientDisconnected += OnClientDisconnected;
             _server.OnLogMessage += Server_OnLogMessage;
 
 
@@ -120,6 +122,32 @@ namespace ServerPartWinForm
             }
 
             return (true, port);
+        }
+
+        private void OnClientConnected(object sender, string clientName)
+        {
+            UpdateClientList();
+        }
+
+        private void OnClientDisconnected(object sender, string clientName)
+        {
+            UpdateClientList();
+        }
+
+        private void UpdateClientList()
+        {
+            if (connectedClientsList.InvokeRequired)
+            {
+                connectedClientsList.Invoke(new Action(UpdateClientList));
+            }
+            else
+            {
+                connectedClientsList.Items.Clear();
+                foreach (var client in _server.ConnectedClients)
+                {
+                    connectedClientsList.Items.Add(client.Username);
+                }
+            }
         }
     }
 }
